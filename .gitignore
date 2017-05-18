@@ -67,6 +67,6 @@ fabric.properties
 
 # End of https://www.gitignore.io/api/intellij
 hashtags.lcn/
-src/main/java/com/hashtag/context/main/
+
 src/test/
 target/

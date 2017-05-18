@@ -1,6 +1,7 @@
 package com.hashtag.context.index;
 
 import com.hashtag.context.stream.Twitter;
+import com.hashtag.context.utils.Twokenize;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.ngram.NGramTokenizer;
 import org.apache.lucene.document.Document;
@@ -17,13 +18,7 @@ import twitter4j.TwitterException;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -92,48 +87,6 @@ public class HashtagIndex {
             terms.addAll(Arrays.asList(extras));
         }
         return terms;
-    }
-
-    public static void main(String args[]) throws IOException, InterruptedException, ParseException, TwitterException {
-        HashtagIndex index = new HashtagIndex();
-        Twitter.stream().forEach(status -> {
-            try {
-                Markable markable = MarkableExtractor.extractMarkables(status);
-                Set<String> tokens = new HashSet<>(markable.getEntities());
-                tokens.addAll(markable.getNouns());
-                tokens.addAll(markable.getVerbs());
-                for (String token : tokens) {
-                    if (token.startsWith("#") || token.startsWith("http")) {
-                        continue;
-                    }
-                    token = token.replaceAll("\n", "");
-                    token = token.toLowerCase();
-                    token = token.trim();
-                    index.appendDocument(token);
-                }
-
-                for (HashtagEntity entity : status.getHashtagEntities()) {
-                    System.out.println(((Runtime.getRuntime().freeMemory() + Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory()) / 1024) + "\t#" + entity.getText() + ": " + index.contextFor(entity.getText().toLowerCase()));
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (CertificateException e) {
-                e.printStackTrace();
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (UnrecoverableKeyException e) {
-                e.printStackTrace();
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            } catch (KeyStoreException e) {
-                e.printStackTrace();
-            } catch (KeyManagementException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        });
     }
 
 }
