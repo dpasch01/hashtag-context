@@ -1,11 +1,11 @@
 package com.hashtag.context.stream;
 
-import com.hashtag.context.utils.Utils;
+import com.hashtag.context.index.HashtagIndex;
+import com.hashtag.context.utils.Twokenize;
 import org.apache.commons.io.FileUtils;
-import twitter4j.HashtagEntity;
-import twitter4j.Status;
-import twitter4j.TwitterException;
-import twitter4j.TwitterObjectFactory;
+import org.apache.lucene.queryparser.classic.ParseException;
+import twitter4j.*;
+import twitter4j.conf.ConfigurationBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,23 +29,84 @@ public class Twitter {
         return statuses.stream();
     }
 
-    public static void main(String[] args) throws IOException, TwitterException {
-        Twitter.stream().forEach(status -> {
-            for (HashtagEntity he : status.getHashtagEntities()) {
-                String normalized = he.getText().toLowerCase();
-                if (HASHTAGS.containsKey(normalized)) {
-                    int temp = HASHTAGS.get(normalized);
-                    temp += 1;
-                    HASHTAGS.put(normalized, temp);
-                } else {
-                    HASHTAGS.put(normalized, 1);
+    private static String CONSUMER_KEY = "nUo03wsfWcMpF2GAfNNwnvszW";
+    private static String CONSUMER_SECRET = "uAd08Ez8UWxko27B5oYh7DDt84g9QLnU68aQqH4bdMsvuvGziS";
+    private static String ACCESS_TOKEN = "2976106171-q4EA8InfDPSAuQ9NK4mR4x3xfIVzP2QzfTPlL5l";
+    private static String ACCESS_SECRET = "CQCu7gfdPKsbLKiN1lxFC1Yy1X1LYoCslFRaA1k8FjJbH";
+
+    private static HashtagIndex index;
+
+    public static void main(String args[]) throws IOException {
+
+        index = new HashtagIndex();
+
+        ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+        configurationBuilder
+                .setOAuthConsumerKey(CONSUMER_KEY)
+                .setOAuthConsumerSecret(CONSUMER_SECRET)
+                .setOAuthAccessToken(ACCESS_TOKEN)
+                .setOAuthAccessTokenSecret(ACCESS_SECRET);
+
+        TwitterStream twitterStream = new TwitterStreamFactory(configurationBuilder.build()).getInstance();
+        StatusListener listener = (new StatusListener() {
+            @SuppressWarnings("Duplicates")
+            @Override
+            public void onStatus(Status status) {
+
+                try {
+                    for (String token : Twokenize.tokenizeRawTweetText(status.getText().replaceAll("\n", "").toLowerCase())) {
+                        if (token.startsWith("@") || token.startsWith("#") || token.startsWith("http")) {
+                            continue;
+                        }
+                        token = token.replaceAll("\n", "");
+                        token = token.toLowerCase();
+                        token = token.trim();
+
+                        index.appendDocument(token);
+                    }
+
+                    for (HashtagEntity entity : status.getHashtagEntities()) {
+                        System.out.println(((Runtime.getRuntime().freeMemory() + Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory()) / 1024) + "\t#" + entity.getText() + ": " + index.contextFor(entity.getText().toLowerCase()));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
+
+
+            }
+
+            @Override
+            public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+
+            }
+
+            @Override
+            public void onTrackLimitationNotice(int i) {
+
+            }
+
+            @Override
+            public void onScrubGeo(long l1, long l2) {
+
+            }
+
+            @Override
+            public void onStallWarning(StallWarning stallWarning) {
+
+            }
+
+            @Override
+            public void onException(Exception e) {
+
             }
         });
 
-        for (String hashtag : Utils.sortByValue(HASHTAGS).keySet()) {
-            System.out.println(hashtag + ": " + HASHTAGS.get(hashtag));
-        }
+        twitterStream.addListener(listener);
+        twitterStream.sample("en");
+
     }
+
 
 }
