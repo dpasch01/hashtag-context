@@ -9,7 +9,6 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.TrackingIndexWriter;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 
