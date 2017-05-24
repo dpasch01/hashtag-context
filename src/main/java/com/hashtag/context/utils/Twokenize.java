@@ -1,5 +1,7 @@
 package com.hashtag.context.utils;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,8 +10,6 @@ import java.util.regex.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
-
-import org.apache.commons.lang.StringEscapeUtils;
 
 /**
  * Twokenize -- a tokenizer designed for Twitter text in English and some other European languages.

@@ -54,11 +54,15 @@ public class HashtagIndex {
 
     }
 
-    public void appendDocument(String term) throws IOException {
+    public void appendDocument(String term, String hashtag) throws IOException {
         Document document = new Document();
         document.add(new TextField("term", term, TextField.Store.YES));
-        document.add(new TextField("hashtag", "#" + term, TextField.Store.YES));
+        document.add(new TextField("hashtag", "#" + hashtag, TextField.Store.YES));
         this.indexWriter.addDocument(document);
+    }
+
+    public void store() throws IOException {
+        this.indexWriter.close();
     }
 
     public FSDirectory getIndex() {
@@ -68,7 +72,7 @@ public class HashtagIndex {
     public Set<String> contextFor(String hashtag) throws IOException, ParseException {
         IndexSearcher searcher = searcherManager.acquire();
         MultiFieldQueryParser qp = new MultiFieldQueryParser(new String[]{"term"}, this.analyzer);
-        Query query = qp.parse("hashtag:#" + qp.escape(hashtag) + " AND term:" + hashtag);
+        Query query = qp.parse("hashtag:#" + qp.escape(hashtag) + " AND term:" + qp.escape(hashtag));
         TopDocs docs = searcher.search(query, 5);
 
         Set<String> terms = new HashSet<>();
